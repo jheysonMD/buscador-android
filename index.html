@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e74c3c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Buscador de Productos - MUNDOLAVADORAS</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .scanner-section {
+            padding: 20px;
+            text-align: center;
+        }
+
+        #qr-reader {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .search-manual {
+            padding: 20px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .search-manual h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-box .btn {
+            width: 100%;
+            margin: 0;
+        }
+
+        .product-info {
+            padding: 20px;
+            display: none;
+        }
+
+        .product-info.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .product-images img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: contain;
+            background: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .product-detail {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .product-detail label {
+            font-weight: bold;
+            color: #7f8c8d;
+            font-size: 12px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .product-detail .value {
+            font-size: 18px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .price-regular {
+            color: #27ae60;
+            font-size: 24px;
+        }
+
+        .price-special {
+            color: #e74c3c;
+            font-size: 24px;
+        }
+
+        .price-comparison {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .price-comparison .old-price {
+            text-decoration: line-through;
+            opacity: 0.8;
+            font-size: 16px;
+        }
+
+        .price-comparison .savings {
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stock-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #f5c6cb;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #c3e6cb;
+        }
+
+        .badge-business {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        #camera-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #bee5eb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Buscador de Productos</h1>
+            <p>MUNDOLAVADORAS</p>
+        </div>
+
+        <div class="scanner-section">
+            <h2 style="margin-bottom: 15px; color: #2c3e50;">Escanear Código QR</h2>
+            <div id="qr-reader"></div>
+            <div id="camera-status"></div>
+            <button id="start-scan" class="btn btn-success">📷 Iniciar Escáner</button>
+            <button id="stop-scan" class="btn btn-danger" style="display: none;">⏹ Detener Escáner</button>
+        </div>
+
+        <div class="search-manual">
+            <h3>Búsqueda Manual por SKU</h3>
+            <div class="search-box">
+                <input type="text" id="manual-sku" placeholder="Ingrese SKU del producto">
+                <button id="search-btn" class="btn">🔍 Buscar</button>
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Buscando producto...</p>
+        </div>
+
+        <div class="error-message"></div>
+
+        <div class="product-info" id="product-info"></div>
+    </div>
+
+    <!-- Librería Html5-QRCode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        // Configuración de las tiendas
+        const STORE_CONFIG = {
+            main: {
+                url: 'https://mundolavadoras.com/wp-json/wc/v3/products',
+                key: 'ck_ac71f77112971d39f3e349dd4a2d0ffbafb21f7a',
+                secret: 'cs_fb4fea0b0b698bc83365c2fccb73720003f8da4a'
+            },
+            business: {
+                url: 'https://cerebroelectronics.com/wp-json/wc/v3/products',
+                key: 'ck_a4223282e3089bd6f9cf0038fc858baf06719436',
+                secret: 'cs_8c532ec7decabb40e9a8989bcdcb75ac381f525a'
+            }
+        };
+
+        // Formatear precio
+        function formatPrice(number) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        // Mostrar mensaje de error
+        function showError(message) {
+            const errorDiv = document.querySelector('.error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+            setTimeout(() => errorDiv.classList.remove('active'), 5000);
+        }
+
+        // Mostrar loading
+        function showLoading(show) {
+            const loading = document.querySelector('.loading');
+            if (show) {
+                loading.classList.add('active');
+            } else {
+                loading.classList.remove('active');
+            }
+        }
+
+        // Buscar producto en una tienda específica
+        async function fetchProductFromStore(sku, storeConfig) {
+            try {
+                const url = `${storeConfig.url}?sku=${encodeURIComponent(sku)}&consumer_key=${storeConfig.key}&consumer_secret=${storeConfig.secret}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const products = await response.json();
+                return products.length > 0 ? products[0] : null;
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                return null;
+            }
+        }
+
+        // Buscar producto por SKU en ambas tiendas
+        async function searchProductBySku(sku) {
+            showLoading(true);
+            document.getElementById('product-info').classList.remove('active');
+
+            try {
+                // Buscar en tienda principal (mundolavadoras.com)
+                const mainProduct = await fetchProductFromStore(sku, STORE_CONFIG.main);
+                
+                if (!mainProduct) {
+                    showError(`No se encontró ningún producto con SKU: ${sku}`);
+                    showLoading(false);
+                    return;
+                }
+
+                // Buscar precio especial en tienda de negocios (cerebroelectronics.com)
+                const businessProduct = await fetchProductFromStore(sku, STORE_CONFIG.business);
+                
+                // Obtener precio especial desde meta_data o precio regular
+                let businessPrice = null;
+                if (businessProduct) {
+                    // Primero buscar en meta_data el campo _precio_cliente_negocio
+                    if (businessProduct.meta_data && Array.isArray(businessProduct.meta_data)) {
+                        const businessPriceMeta = businessProduct.meta_data.find(meta => 
+                            meta.key === '_precio_cliente_negocio'
+                        );
+                        if (businessPriceMeta && businessPriceMeta.value) {
+                            businessPrice = parseFloat(businessPriceMeta.value);
+                        }
+                    }
+                    
+                    // Si no hay precio en meta_data, usar el precio regular del producto
+                    if (!businessPrice && businessProduct.price) {
+                        businessPrice = parseFloat(businessProduct.price);
+                    }
+                }
+
+                // Mostrar producto
+                displayProduct(mainProduct, businessPrice);
+                showLoading(false);
+            } catch (error) {
+                console.error('Error al buscar producto:', error);
+                showError('Error al buscar el producto. Por favor intente nuevamente.');
+                showLoading(false);
+            }
+        }
+
+        // Mostrar información del producto
+        function displayProduct(product, businessPrice) {
+            const productInfo = document.getElementById('product-info');
+            
+            // Obtener las primeras 2 imágenes
+            const images = product.images.slice(0, 2);
+            const imagesHTML = images.map(img => 
+                `<img src="${img.src}" alt="${product.name}">`
+            ).join('');
+
+            // Determinar estado del stock
+            const stock = product.stock_quantity || 0;
+            let stockClass = 'stock-out';
+            let stockText = 'Sin Stock';
+            
+            if (stock > 10) {
+                stockClass = 'stock-available';
+                stockText = `${stock} unidades disponibles`;
+            } else if (stock > 0) {
+                stockClass = 'stock-low';
+                stockText = `${stock} unidades (Stock bajo)`;
+            }
+
+            // Precio especial de negocio
+            const regularPrice = parseFloat(product.price);
+            let priceHTML = `
+                <div class="product-detail">
+                    <label>Precio</label>
+                    <div class="value price-regular">${formatPrice(regularPrice)}</div>
+                </div>
+            `;
+
+            if (businessPrice && businessPrice > 0 && businessPrice < regularPrice) {
+                const savings = regularPrice - businessPrice;
+                const percentage = ((savings / regularPrice) * 100).toFixed(0);
+                
+                priceHTML = `
+                    <div class="product-detail">
+                        <label>Precio Regular</label>
+                        <div class="value price-regular">${formatPrice(regularPrice)}</div>
+                    </div>
+                    <div class="price-comparison">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 14px; opacity: 0.9;">💼 Precio de Negocio</div>
+                                <div style="font-size: 28px; font-weight: bold; margin-top: 5px;">${formatPrice(businessPrice)}</div>
+                            </div>
+                            <div class="badge-business">-${percentage}%</div>
+                        </div>
+                        <div class="savings">
+                            🎯 Ahorro: ${formatPrice(savings)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="product-card">
+                    <div class="product-title">${product.name}</div>
+                    
+                    ${images.length > 0 ? `
+                        <div class="product-images">
+                            ${imagesHTML}
+                        </div>
+                    ` : '<p style="text-align: center; color: #95a5a6;">Sin imágenes disponibles</p>'}
+                    
+                    <div class="product-detail">
+                        <label>SKU</label>
+                        <div class="value">${product.sku}</div>
+                    </div>
+                    
+                    ${priceHTML}
+                    
+                    <div class="product-detail">
+                        <label>Inventario</label>
+                        <div class="value">
+                            <span class="stock-badge ${stockClass}">${stockText}</span>
+                        </div>
+                    </div>
+                    
+                    ${businessPrice && businessPrice < regularPrice ? '<div class="success-message">✅ Este producto tiene precio especial para clientes de negocio</div>' : ''}
+                </div>
+            `;
+
+            productInfo.innerHTML = html;
+            productInfo.classList.add('active');
+        }
+
+        // Función callback cuando se escanea un QR
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Código QR detectado: ${decodedText}`);
+            
+            // Detener el escáner
+            stopScanner();
+            
+            // Buscar producto con el SKU escaneado
+            searchProductBySku(decodedText.trim());
+        }
+
+        // Función callback cuando hay error en el escaneo
+        function onScanError(errorMessage) {
+            // No mostrar errores de escaneo continuos
+            console.log(errorMessage);
+        }
+
+        // Iniciar escáner
+        function startScanner() {
+            if (isScanning) return;
+
+            const statusDiv = document.getElementById('camera-status');
+            statusDiv.className = 'status-info';
+            statusDiv.textContent = '📷 Iniciando cámara...';
+
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    // Preferir cámara trasera
+                    const backCamera = cameras.find(camera => 
+                        camera.label.toLowerCase().includes('back') || 
+                        camera.label.toLowerCase().includes('trasera')
+                    );
+                    const cameraId = backCamera ? backCamera.id : cameras[0].id;
+
+                    html5QrcodeScanner.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        onScanSuccess,
+                        onScanError
+                    ).then(() => {
+                        isScanning = true;
+                        document.getElementById('start-scan').style.display = 'none';
+                        document.getElementById('stop-scan').style.display = 'inline-block';
+                        statusDiv.className = 'status-info';
+                        statusDiv.textContent = '✅ Cámara activa - Apunte al código QR';
+                    }).catch(err => {
+                        statusDiv.className = 'status-error';
+                        statusDiv.textContent = `❌ Error: ${err}`;
+                    });
+                } else {
+                    statusDiv.className = 'status-error';
+                    statusDiv.textContent = '❌ No se encontró ninguna cámara';
+                }
+            }).catch(err => {
+                statusDiv.className = 'status-error';
+                statusDiv.textContent = `❌ Error al acceder a la cámara: ${err}`;
+            });
+        }
+
+        // Detener escáner
+        function stopScanner() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                    document.getElementById('start-scan').style.display = 'inline-block';
+                    document.getElementById('stop-scan').style.display = 'none';
+                    document.getElementById('camera-status').textContent = '';
+                }).catch(err => {
+                    console.error('Error deteniendo escáner:', err);
+                });
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('start-scan').addEventListener('click', startScanner);
+        document.getElementById('stop-scan').addEventListener('click', stopScanner);
+
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const sku = document.getElementById('manual-sku').value.trim();
+            if (sku) {
+                searchProductBySku(sku);
+            } else {
+                showError('Por favor ingrese un SKU');
+            }
+        });
+
+        // Búsqueda automática después de 5 caracteres
+        let searchTimeout;
+        document.getElementById('manual-sku').addEventListener('input', (e) => {
+            const sku = e.target.value.trim();
+            
+            // Cancelar búsqueda anterior si existe
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // Si tiene 5 o más caracteres, buscar después de 500ms
+            if (sku.length >= 5) {
+                searchTimeout = setTimeout(() => {
+                    searchProductBySku(sku);
+                }, 500);
+            }
+        });
+
+        document.getElementById('manual-sku').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('search-btn').click();
+            }
+        });
+
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registrado'))
+                    .catch(err => console.log('Error al registrar Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
